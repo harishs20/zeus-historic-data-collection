@@ -139,7 +139,8 @@ export const MonthEntry: React.FC = () => {
       newEntries[index].work_package_id = null;
     }
     if (field === 'day_status') {
-      if (value !== 'Working') {
+      // Only clear project fields for 'No Entry' — Leave and Holiday can still have project details
+      if (value === 'No Entry') {
         newEntries[index].project_id = null;
         newEntries[index].building_id = null;
         newEntries[index].discipline_id = null;

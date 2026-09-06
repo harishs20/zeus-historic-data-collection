@@ -34,6 +34,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
   view
 }) => {
   const isWorking = entry.day_status === 'Working';
+  const isNoEntry = entry.day_status === 'No Entry';
   const isDaySubmitted = entry.status === 'Submitted';
   const isDaySubmitting = submittingDay === entry.date;
   const availableBuildings = buildings.filter(b => b.project_id === entry.project_id);
@@ -67,7 +68,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
           </div>
         </div>
         
-        {isWorking && (
+        {!isNoEntry && (
           <div className="space-y-3">
             {!isSubmitted && !isDaySubmitted && index > 0 && (
               <button 
@@ -168,7 +169,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
 
   // Desktop view
   return (
-    <tr className={`${isWorking ? 'bg-white' : 'bg-gray-50'} ${isDaySubmitted ? 'opacity-80' : ''}`}>
+    <tr className={`${isWorking ? 'bg-white' : isNoEntry ? 'bg-gray-100' : 'bg-gray-50'} ${isDaySubmitted ? 'opacity-80' : ''}`}>
       <td className="px-4 py-3 whitespace-nowrap">
         <div className="text-sm font-medium text-gray-900">{displayDate}</div>
         <div className="text-xs text-gray-500">{dayName}</div>
@@ -190,7 +191,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
         <select
           value={entry.project_id || ''}
           onChange={(e) => updateEntry(index, 'project_id', e.target.value ? Number(e.target.value) : null)}
-          disabled={!isWorking || isSubmitted || isDaySubmitted}
+          disabled={isNoEntry || isSubmitted || isDaySubmitted}
           className={`${baseInputClass} py-1.5`}
         >
           <option value="">-</option>
@@ -201,7 +202,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
         <select
           value={entry.building_id || ''}
           onChange={(e) => updateEntry(index, 'building_id', e.target.value ? Number(e.target.value) : null)}
-          disabled={!isWorking || !entry.project_id || isSubmitted || isDaySubmitted}
+          disabled={isNoEntry || !entry.project_id || isSubmitted || isDaySubmitted}
           className={`${baseInputClass} py-1.5`}
         >
           <option value="">-</option>
@@ -212,7 +213,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
         <select
           value={entry.discipline_id || ''}
           onChange={(e) => updateEntry(index, 'discipline_id', e.target.value ? Number(e.target.value) : null)}
-          disabled={!isWorking || isSubmitted || isDaySubmitted}
+          disabled={isNoEntry || isSubmitted || isDaySubmitted}
           className={`${baseInputClass} py-1.5`}
         >
           <option value="">-</option>
@@ -223,7 +224,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
         <select
           value={entry.work_package_id || ''}
           onChange={(e) => updateEntry(index, 'work_package_id', e.target.value ? Number(e.target.value) : null)}
-          disabled={!isWorking || !entry.discipline_id || isSubmitted || isDaySubmitted}
+          disabled={isNoEntry || !entry.discipline_id || isSubmitted || isDaySubmitted}
           className={`${baseInputClass} py-1.5`}
         >
           <option value="">-</option>
@@ -238,7 +239,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
           step="0.5"
           value={entry.hours_worked}
           onChange={(e) => updateEntry(index, 'hours_worked', e.target.value)}
-          disabled={!isWorking || isSubmitted || isDaySubmitted}
+          disabled={isNoEntry || isSubmitted || isDaySubmitted}
           className={`${baseInputClass} py-1.5`}
         />
       </td>

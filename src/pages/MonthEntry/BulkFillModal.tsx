@@ -115,7 +115,7 @@ export const BulkFillModal: React.FC<BulkFillModalProps> = ({
                 </select>
               </div>
 
-              {dayStatus === 'Working' && (
+              {dayStatus !== 'No Entry' && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Project</label>
