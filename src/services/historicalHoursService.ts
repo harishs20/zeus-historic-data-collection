@@ -36,12 +36,24 @@ export const historicalHoursService = {
 
   async saveEntries(entries: HistoricalHoursEntry[]): Promise<void> {
     if (entries.length === 0) return;
-    
-    const { error } = await supabase
-      .from('historical_hours_entries')
-      .upsert(entries, { onConflict: 'id' });
-      
-    if (error) throw new Error(error.message);
+
+    const toInsert = entries.filter(e => !e.id);
+    const toUpdate = entries.filter(e => e.id);
+
+    if (toInsert.length > 0) {
+      const insertData = toInsert.map(({ id, ...rest }) => rest);
+      const { error } = await supabase
+        .from('historical_hours_entries')
+        .insert(insertData);
+      if (error) throw new Error(error.message);
+    }
+
+    if (toUpdate.length > 0) {
+      const { error } = await supabase
+        .from('historical_hours_entries')
+        .upsert(toUpdate, { onConflict: 'id' });
+      if (error) throw new Error(error.message);
+    }
   },
   
   async deleteEntry(id: number): Promise<void> {

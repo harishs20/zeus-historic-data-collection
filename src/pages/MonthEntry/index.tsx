@@ -29,6 +29,7 @@ export const MonthEntry: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submittingDay, setSubmittingDay] = useState<string | null>(null);
   
   const [projects, setProjects] = useState<Project[]>([]);
   const [buildings, setBuildings] = useState<Building[]>([]);
@@ -67,9 +68,7 @@ export const MonthEntry: React.FC = () => {
       setWorkPackages(wp);
 
       // Generate all days for the month
-      // Max date for Aug 2026 is Aug 12
-      const isAug2026 = yearNum === 2026 && monthNum === 8;
-      const daysCount = isAug2026 ? 12 : getDaysInMonth(new Date(yearNum, monthNum - 1));
+      const daysCount = getDaysInMonth(new Date(yearNum, monthNum - 1));
       
       const dailyEntries: DailyEntry[] = [];
       let monthSubmitted = false;
@@ -128,6 +127,8 @@ export const MonthEntry: React.FC = () => {
 
   const updateEntry = (index: number, field: keyof DailyEntry, value: any) => {
     if (isSubmitted) return;
+    // Block editing days that have been individually submitted
+    if (entries[index]?.status === 'Submitted') return;
     const newEntries = [...entries];
     
     // Reset dependent fields
@@ -236,6 +237,45 @@ export const MonthEntry: React.FC = () => {
       alert('Failed to save draft: ' + err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSubmitDay = async (index: number) => {
+    if (!employee) return;
+    const e = entries[index];
+    if (e.day_status === 'No Entry') {
+      alert('Please select a status for this day before submitting.');
+      return;
+    }
+    if (e.day_status === 'Working') {
+      if (!e.project_id || !e.building_id || !e.discipline_id || !e.work_package_id || e.hours_worked === '' || Number(e.hours_worked) <= 0) {
+        alert('Please fill all required fields (Project, Building, Discipline, Work Package, Hours) before submitting this day.');
+        return;
+      }
+    }
+    if (!window.confirm(`Submit ${e.date}? This day will be locked and cannot be edited again.`)) return;
+
+    setSubmittingDay(e.date);
+    try {
+      const dbEntry: HistoricalHoursEntry = {
+        employee_id: employee.id,
+        entry_date: e.date,
+        project_id: e.project_id || null,
+        building_id: e.building_id || null,
+        work_package_id: e.work_package_id || null,
+        hours_worked: e.hours_worked === '' ? null : Number(e.hours_worked),
+        remarks: historicalHoursService.encodeRemarks('Submitted', e.day_status)
+      };
+      if (e.id) dbEntry.id = e.id;
+      await historicalHoursService.saveEntries([dbEntry]);
+      // Lock this day in local state
+      const newEntries = [...entries];
+      newEntries[index] = { ...newEntries[index], status: 'Submitted' };
+      setEntries(newEntries);
+    } catch (err: any) {
+      alert('Failed to submit day: ' + err.message);
+    } finally {
+      setSubmittingDay(null);
     }
   };
 
@@ -354,7 +394,7 @@ export const MonthEntry: React.FC = () => {
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discipline</th>
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Work Package</th>
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Hours</th>
-                {!isSubmitted && <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Copy</th>}
+                <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -365,6 +405,8 @@ export const MonthEntry: React.FC = () => {
                   index={index}
                   updateEntry={updateEntry}
                   copyPrevious={copyPrevious}
+                  onSubmitDay={handleSubmitDay}
+                  submittingDay={submittingDay}
                   projects={projects}
                   buildings={buildings}
                   disciplines={disciplines}
@@ -396,6 +438,8 @@ export const MonthEntry: React.FC = () => {
             index={index}
             updateEntry={updateEntry}
             copyPrevious={copyPrevious}
+            onSubmitDay={handleSubmitDay}
+            submittingDay={submittingDay}
             projects={projects}
             buildings={buildings}
             disciplines={disciplines}

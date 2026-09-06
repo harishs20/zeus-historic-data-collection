@@ -22,7 +22,7 @@ export const Layout: React.FC = () => {
                 <History className="w-5 h-5 text-white" />
               </div>
               <span className="font-semibold text-lg text-gray-900 tracking-tight hidden sm:block">
-                ZEUS Project Constants Pvt Ltd
+                ZEUS Project Consultants Pvt Ltd
               </span>
               <span className="font-semibold text-lg text-gray-900 tracking-tight sm:hidden">
                 ZEUS
@@ -68,7 +68,7 @@ export const Layout: React.FC = () => {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} ZEUS Project Constants Pvt Ltd. All rights reserved.
+            &copy; {new Date().getFullYear()} ZEUS Project Consultants Pvt Ltd. All rights reserved.
           </p>
         </div>
       </footer>

@@ -7,6 +7,7 @@ import { format, parseISO, isBefore, endOfMonth } from 'date-fns';
 import { CalendarDays, CheckCircle2, Circle, Loader2 } from 'lucide-react';
 
 const MONTHS_TO_COLLECT = [
+  { year: 2025, month: 12, name: 'December' },
   { year: 2026, month: 1, name: 'January' },
   { year: 2026, month: 2, name: 'February' },
   { year: 2026, month: 3, name: 'March' },
@@ -14,7 +15,8 @@ const MONTHS_TO_COLLECT = [
   { year: 2026, month: 5, name: 'May' },
   { year: 2026, month: 6, name: 'June' },
   { year: 2026, month: 7, name: 'July' },
-  { year: 2026, month: 8, name: 'August' }, // Up to Aug 12
+  { year: 2026, month: 8, name: 'August' },
+  { year: 2026, month: 9, name: 'September' },
 ];
 
 export const Dashboard: React.FC = () => {
@@ -62,7 +64,7 @@ export const Dashboard: React.FC = () => {
     if (isSubmitted) return { status: 'Complete', totalHours, percentage: 100 };
 
     // Calculate approximate progress (days filled / total days in month)
-    const totalDays = month === 8 ? 12 : endOfMonth(new Date(year, month - 1)).getDate();
+    const totalDays = endOfMonth(new Date(year, month - 1)).getDate();
     const uniqueDays = new Set(monthEntries.map(e => e.entry_date)).size;
     const percentage = Math.round((uniqueDays / totalDays) * 100);
 
