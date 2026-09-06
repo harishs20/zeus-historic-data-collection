@@ -250,7 +250,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
           </span>
         ) : !isSubmitted ? (
           <div className="flex items-center justify-center gap-1">
-            {index > 0 && isWorking && (
+            {index > 0 && !isNoEntry && (
               <button
                 onClick={() => copyPrevious(index)}
                 title="Copy previous row"
