@@ -51,6 +51,7 @@ export interface HistoricalHoursEntry {
   work_package_id: number | null;
   entry_date: string;
   hours_worked: number | null;
+  description?: string | null;
   remarks: string | null;
   created_at?: string;
 }

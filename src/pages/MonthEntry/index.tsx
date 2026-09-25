@@ -18,6 +18,7 @@ export interface DailyEntry {
   discipline_id: number | null;
   work_package_id: number | null;
   hours_worked: number | '';
+  description?: string;
   status: 'Draft' | 'Submitted';
 }
 
@@ -71,7 +72,7 @@ export const MonthEntry: React.FC = () => {
       const daysCount = getDaysInMonth(new Date(yearNum, monthNum - 1));
       
       const dailyEntries: DailyEntry[] = [];
-      let monthSubmitted = false;
+      let allDaysSubmitted = existingEntries.length === daysCount && daysCount > 0;
       
       for (let i = 1; i <= daysCount; i++) {
         const dateStr = `${yearStr}-${monthStr}-${String(i).padStart(2, '0')}`;
@@ -79,8 +80,8 @@ export const MonthEntry: React.FC = () => {
         
         if (existing) {
           const remarks = historicalHoursService.decodeRemarks(existing.remarks);
-          if (remarks.status === 'Submitted') {
-            monthSubmitted = true;
+          if (remarks.status !== 'Submitted') {
+            allDaysSubmitted = false;
           }
           
           // Find discipline from work package
@@ -99,9 +100,11 @@ export const MonthEntry: React.FC = () => {
             discipline_id: discId,
             work_package_id: existing.work_package_id,
             hours_worked: existing.hours_worked ?? '',
+            description: existing.description ?? remarks.note ?? '',
             status: remarks.status
           });
         } else {
+          allDaysSubmitted = false;
           dailyEntries.push({
             date: dateStr,
             day_status: 'No Entry',
@@ -110,13 +113,14 @@ export const MonthEntry: React.FC = () => {
             discipline_id: null,
             work_package_id: null,
             hours_worked: '',
+            description: '',
             status: 'Draft'
           });
         }
       }
       
       setEntries(dailyEntries);
-      setIsSubmitted(monthSubmitted);
+      setIsSubmitted(allDaysSubmitted);
     } catch (err) {
       console.error(err);
       alert('Failed to load data');
@@ -146,6 +150,7 @@ export const MonthEntry: React.FC = () => {
         newEntries[index].discipline_id = null;
         newEntries[index].work_package_id = null;
         newEntries[index].hours_worked = '';
+        newEntries[index].description = '';
       }
     }
     
@@ -164,6 +169,7 @@ export const MonthEntry: React.FC = () => {
       building_id: prev.building_id,
       discipline_id: prev.discipline_id,
       work_package_id: prev.work_package_id,
+      description: prev.description || '',
     };
     setEntries(newEntries);
   };
@@ -180,6 +186,7 @@ export const MonthEntry: React.FC = () => {
           building_id: data.building_id !== undefined ? data.building_id : entry.building_id,
           discipline_id: data.discipline_id !== undefined ? data.discipline_id : entry.discipline_id,
           work_package_id: data.work_package_id !== undefined ? data.work_package_id : entry.work_package_id,
+          description: data.description !== undefined ? data.description : entry.description,
         };
       }
       return entry;
@@ -196,7 +203,7 @@ export const MonthEntry: React.FC = () => {
       .filter(e => {
         // Only save if it's explicitly set or has data
         if (e.id) return true; // Existing record
-        if (e.day_status === 'Working' && (e.project_id || e.hours_worked !== '')) return true;
+        if (e.day_status === 'Working' && (e.project_id || e.hours_worked !== '' || (e.description && e.description.trim() !== ''))) return true;
         if (e.day_status === 'Leave' || e.day_status === 'Holiday') return true;
         return false;
       })
@@ -208,7 +215,8 @@ export const MonthEntry: React.FC = () => {
           building_id: e.building_id || null,
           work_package_id: e.work_package_id || null,
           hours_worked: e.hours_worked === '' ? null : Number(e.hours_worked),
-          remarks: historicalHoursService.encodeRemarks(status, e.day_status)
+          description: e.description ? e.description.trim() : null,
+          remarks: historicalHoursService.encodeRemarks(status, e.day_status, e.description ? e.description.trim() : undefined)
         };
         if (e.id) entry.id = e.id;
         return entry;
@@ -265,7 +273,8 @@ export const MonthEntry: React.FC = () => {
         building_id: e.building_id || null,
         work_package_id: e.work_package_id || null,
         hours_worked: e.hours_worked === '' ? null : Number(e.hours_worked),
-        remarks: historicalHoursService.encodeRemarks('Submitted', e.day_status)
+        description: e.description ? e.description.trim() : null,
+        remarks: historicalHoursService.encodeRemarks('Submitted', e.day_status, e.description ? e.description.trim() : undefined)
       };
       if (e.id) dbEntry.id = e.id;
       await historicalHoursService.saveEntries([dbEntry]);
@@ -394,7 +403,8 @@ export const MonthEntry: React.FC = () => {
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Building</th>
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discipline</th>
                 <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Work Package</th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Hours</th>
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Hours</th>
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Actions</th>
               </tr>
             </thead>
