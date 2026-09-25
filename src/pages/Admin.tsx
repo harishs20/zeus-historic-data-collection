@@ -53,19 +53,21 @@ export const Admin: React.FC = () => {
 
     if (monthEntries.length === 0) return 'Not Started';
 
-    let isSubmitted = false;
+    const totalDays = month === 8 ? 12 : new Date(year, month, 0).getDate();
+    const uniqueDays = new Set(monthEntries.map(e => e.entry_date)).size;
+    let submittedCount = 0;
+    
     monthEntries.forEach(entry => {
       const remarksData = historicalHoursService.decodeRemarks(entry.remarks);
       if (remarksData.status === 'Submitted') {
-        isSubmitted = true;
+        submittedCount++;
       }
     });
 
-    if (isSubmitted) return 'Submitted';
+    if (uniqueDays === totalDays && submittedCount === monthEntries.length) {
+      return 'Submitted';
+    }
     
-    // In progress
-    const totalDays = month === 8 ? 12 : new Date(year, month, 0).getDate();
-    const uniqueDays = new Set(monthEntries.map(e => e.entry_date)).size;
     return `${Math.round((uniqueDays / totalDays) * 100)}%`;
   };
 

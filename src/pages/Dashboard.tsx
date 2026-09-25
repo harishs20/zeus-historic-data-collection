@@ -50,24 +50,24 @@ export const Dashboard: React.FC = () => {
 
     if (monthEntries.length === 0) return { status: 'Not Started', totalHours: 0, percentage: 0 };
 
-    let isSubmitted = false;
+    const totalDays = endOfMonth(new Date(year, month - 1)).getDate();
+    const uniqueDays = new Set(monthEntries.map(e => e.entry_date)).size;
+    let submittedCount = 0;
     let totalHours = 0;
     
     monthEntries.forEach(entry => {
       const remarksData = historicalHoursService.decodeRemarks(entry.remarks);
       if (remarksData.status === 'Submitted') {
-        isSubmitted = true;
+        submittedCount++;
       }
       totalHours += (entry.hours_worked || 0);
     });
 
-    if (isSubmitted) return { status: 'Complete', totalHours, percentage: 100 };
+    if (uniqueDays === totalDays && submittedCount === monthEntries.length) {
+      return { status: 'Complete', totalHours, percentage: 100 };
+    }
 
-    // Calculate approximate progress (days filled / total days in month)
-    const totalDays = endOfMonth(new Date(year, month - 1)).getDate();
-    const uniqueDays = new Set(monthEntries.map(e => e.entry_date)).size;
     const percentage = Math.round((uniqueDays / totalDays) * 100);
-
     return { status: 'In Progress', totalHours, percentage };
   };
 

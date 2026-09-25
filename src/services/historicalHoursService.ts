@@ -37,22 +37,44 @@ export const historicalHoursService = {
   async saveEntries(entries: HistoricalHoursEntry[]): Promise<void> {
     if (entries.length === 0) return;
 
+    const formatError = (error: any): string => {
+      if (!error) return 'Unknown database error';
+      if (
+        error.code === '23505' ||
+        error.message?.includes('historical_hours_entries_employee_wp_date_uk') ||
+        error.message?.includes('unique constraint')
+      ) {
+        return 'An entry already exists for this employee, work package, and date combination.';
+      }
+      return error.message || 'Database operation failed';
+    };
+
     const toInsert = entries.filter(e => !e.id);
     const toUpdate = entries.filter(e => e.id);
 
     if (toInsert.length > 0) {
       const insertData = toInsert.map(({ id, ...rest }) => rest);
-      const { error } = await supabase
+      
+      const { error: upsertErr } = await supabase
         .from('historical_hours_entries')
-        .insert(insertData);
-      if (error) throw new Error(error.message);
+        .upsert(insertData, { onConflict: 'employee_id,work_package_id,entry_date' });
+
+      if (upsertErr) {
+        const { error: insertErr } = await supabase
+          .from('historical_hours_entries')
+          .insert(insertData);
+
+        if (insertErr) {
+          throw new Error(formatError(insertErr));
+        }
+      }
     }
 
     if (toUpdate.length > 0) {
       const { error } = await supabase
         .from('historical_hours_entries')
         .upsert(toUpdate, { onConflict: 'id' });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(formatError(error));
     }
   },
   

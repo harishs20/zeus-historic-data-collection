@@ -33,6 +33,7 @@ export const BulkFillModal: React.FC<BulkFillModalProps> = ({
   const [buildingId, setBuildingId] = useState<number | ''>('');
   const [disciplineId, setDisciplineId] = useState<number | ''>('');
   const [workPackageId, setWorkPackageId] = useState<number | ''>('');
+  const [description, setDescription] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -46,6 +47,7 @@ export const BulkFillModal: React.FC<BulkFillModalProps> = ({
       building_id: buildingId === '' ? undefined : (buildingId || null),
       discipline_id: disciplineId === '' ? undefined : (disciplineId || null),
       work_package_id: workPackageId === '' ? undefined : (workPackageId || null),
+      description: description.trim() === '' ? undefined : description.trim(),
     });
   };
 
@@ -173,6 +175,17 @@ export const BulkFillModal: React.FC<BulkFillModalProps> = ({
                         {availableWorkPackages.map(wp => <option key={wp.id} value={wp.id}>{wp.package_name}</option>)}
                       </select>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Description (optional)</label>
+                    <input
+                      type="text"
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      placeholder="Do not change"
+                      className={baseInputClass}
+                    />
                   </div>
                 </>
               )}

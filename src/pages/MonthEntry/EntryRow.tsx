@@ -142,6 +142,17 @@ export const EntryRow: React.FC<EntryRowProps> = ({
                 placeholder="0"
               />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Description (optional)</label>
+              <input
+                type="text"
+                value={entry.description || ''}
+                onChange={(e) => updateEntry(index, 'description', e.target.value)}
+                disabled={isSubmitted || isDaySubmitted}
+                className={baseInputClass}
+                placeholder="Description (optional)"
+              />
+            </div>
           </div>
         )}
         {/* Per-day submit / lock indicator */}
@@ -241,6 +252,16 @@ export const EntryRow: React.FC<EntryRowProps> = ({
           onChange={(e) => updateEntry(index, 'hours_worked', e.target.value)}
           disabled={isNoEntry || isSubmitted || isDaySubmitted}
           className={`${baseInputClass} py-1.5`}
+        />
+      </td>
+      <td className="px-4 py-2">
+        <input
+          type="text"
+          value={entry.description || ''}
+          onChange={(e) => updateEntry(index, 'description', e.target.value)}
+          disabled={isNoEntry || isSubmitted || isDaySubmitted}
+          className={`${baseInputClass} py-1.5`}
+          placeholder="Optional"
         />
       </td>
       <td className="px-4 py-2 text-center">
